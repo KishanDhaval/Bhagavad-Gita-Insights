@@ -14,7 +14,7 @@ function VerseDisplay({ verse, language }) {
             <strong>Translation (Hindi):</strong> {verse.rams.ht}
           </p>
           {isExplanationVisible && (
-            <p>
+            <p className="explainationP">
               <strong>Explanation (Hindi):</strong> {verse.rams.hc}
             </p>
           )}
@@ -27,7 +27,7 @@ function VerseDisplay({ verse, language }) {
             <strong>Translation (English):</strong> {verse.prabhu.et}
           </p>
           {isExplanationVisible && (
-            <p>
+            <p className="explainationP">
               <strong>Explanation (English):</strong> {verse.prabhu.ec}
             </p>
           )}
@@ -38,19 +38,35 @@ function VerseDisplay({ verse, language }) {
 
   return (
     <div className="verse-container">
-      <h2>Chapter {verse.chapter}, Verse {verse.verse}</h2>
-      <p>{verse.slok}</p>
+      <h2>
+        Chapter {verse.chapter}, Verse {verse.verse}
+      </h2>
+      <p>
+        {verse.slok.split("\n").map((line, index) => (
+          <span key={index}>
+            {line}
+            <br />
+          </span>
+        ))}
+      </p>
+
       <div className="LanguageToggleBtn">
-          <select onChange={(e) => setCurrentLanguage(e.target.value)} value={currentLanguage}>
-            <option value="hindi">Hindi</option>
-            <option value="english">English</option>
-          </select>
+        <select
+          onChange={(e) => setCurrentLanguage(e.target.value)}
+          value={currentLanguage}
+        >
+          <option value="hindi">Hindi</option>
+          <option value="english">English</option>
+        </select>
       </div>
 
       {renderTranslationAndExplanation()}
 
       {/* Button to toggle the visibility of the explanation */}
-      <button className="explainationBtn" onClick={() => setIsExplanationVisible(!isExplanationVisible)}>
+      <button
+        className="explainationBtn"
+        onClick={() => setIsExplanationVisible(!isExplanationVisible)}
+      >
         {isExplanationVisible ? "Hide Explanation" : "Show Explanation"}
       </button>
     </div>
