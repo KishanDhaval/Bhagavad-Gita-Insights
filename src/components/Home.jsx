@@ -137,7 +137,7 @@ function Home() {
           ) : (
             <p>Select an option to display a verse.</p>
           )}
-          {!verse && (
+          {!verse && !loading && (
             <button onClick={handleVerseOfTheDay}>Get Verse of the Day</button>
           )}
         </div>
