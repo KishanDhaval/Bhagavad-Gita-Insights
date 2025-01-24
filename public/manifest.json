@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Bhagavad Gita Extension",
+  "version": "1.0.0",
+  "description": "Get Bhagavad Gita verses daily or on demand.",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "icons/icon48.png"
+  },
+  "background": {
+    "service_worker": "assets/background.js"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://vedicscriptures.github.io/*"
+  ]
+}
