@@ -4,7 +4,10 @@ import VerseDisplay from "./VerseDisplay";
 function Home() {
   const [verse, setVerse] = useState(null); // To store the fetched verse
   const [loading, setLoading] = useState(false); // To manage the loading state
-  const [language, setLanguage] = useState("english"); // Language state (Hindi or English)
+  const [activeTab, setActiveTab] = useState("verseOfTheDay"); // Active tab (Verse of the Day, Random Verse, Settings)
+  const [language, setLanguage] = useState("hindi"); // Language state (Hindi or English)
+  const [chapter, setChapter] = useState(""); // Chapter input state
+  const [slok, setSlok] = useState(""); // Slok input state
 
   // Fetch Verse of the Day (Persistent for the Day)
   const handleVerseOfTheDay = async () => {
@@ -52,45 +55,141 @@ function Home() {
     }
   };
 
-  // Open Settings (Navigate or Modal)
-  const handleSettings = () => {
-    alert("Settings will be implemented here!");
-    // For now, this is just a placeholder. You can navigate to a new page or open a modal here.
+  // Handle Tab Switching
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+
+    // Reset verse state when switching tabs
+    setVerse(null);
+
+    // Fetch the relevant verse when tab is switched
+    if (tab === "randomVerse") {
+      handleRandomVerse(); // Fetch the random verse only when this tab is selected
+    } else if (tab === "verseOfTheDay") {
+      handleVerseOfTheDay(); // Fetch the verse of the day when this tab is selected
+    }
   };
 
-  // Change language handler
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
+  // Handle settings form submission (to set custom Verse of the Day)
+  const handleSettingsSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (!chapter || !slok) {
+        alert("Please enter both chapter and verse.");
+        return;
+      }
+      setLoading(true);
+      // Fetch the custom verse based on the user's input
+      const response = await fetch(
+        `https://vedicscriptures.github.io/slok/${chapter}/${slok}`
+      );
+      const data = await response.json();
+      setVerse(data);
+
+      // Store the custom verse and update Verse of the Day
+      localStorage.setItem("verseOfTheDay", JSON.stringify(data));
+      localStorage.setItem("verseDate", new Date().toISOString().split("T")[0]);
+    } catch (error) {
+      console.error("Error fetching custom verse:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Automatically fetch Verse of the Day on component mount
+  useEffect(() => {
+    handleVerseOfTheDay();
+  }, []); // Empty dependency array means this will only run once when the component mounts
 
   return (
     <div className="home">
-      <h1>Bhagavad Gita</h1>
+      <h1>Bhagavad Gita Insights</h1>
 
-      {/* Language Selection */}
-      <div>
-        <label>
-          Language: 
-          <select onChange={handleLanguageChange} value={language}>
-            <option value="hindi">Hindi</option>
-            <option value="english">English</option>
-          </select>
-        </label>
+      {/* Tab Navigation */}
+      <div className="tabs">
+        <button
+          className={`tab-button ${activeTab === "verseOfTheDay" ? "active" : ""}`}
+          onClick={() => handleTabChange("verseOfTheDay")}
+        >
+          Verse of the Day
+        </button>
+        <button
+          className={`tab-button ${activeTab === "randomVerse" ? "active" : ""}`}
+          onClick={() => handleTabChange("randomVerse")}
+        >
+          Random Verse
+        </button>
+        <button
+          className={`tab-button ${activeTab === "settings" ? "active" : ""}`}
+          onClick={() => handleTabChange("settings")}
+        >
+          Settings
+        </button>
       </div>
 
-      {/* Display the Verse */}
-      {loading ? (
-        <p>Loading...</p>
-      ) : verse ? (
-        <VerseDisplay verse={verse} language={language} />
-      ) : (
-        <p>Select an option to display a verse.</p>
+      {/* Tab Content */}
+      {activeTab === "verseOfTheDay" && (
+        <div className="tab-content">
+          {loading ? (
+            <div className="loading-spinner"></div>
+          ) : verse ? (
+            <VerseDisplay verse={verse} language={language} />
+          ) : (
+            <p>Select an option to display a verse.</p>
+          )}
+          {!verse && (
+            <button onClick={handleVerseOfTheDay}>Get Verse of the Day</button>
+          )}
+        </div>
       )}
 
-      {/* Action Buttons */}
-      <button onClick={handleVerseOfTheDay}>Verse of the Day</button>
-      <button onClick={handleRandomVerse}>Get Random Verse</button>
-      <button onClick={handleSettings}>Settings</button>
+      {activeTab === "randomVerse" && (
+        <div className="tab-content">
+          {loading ? (
+            <div className="loading-spinner"></div>
+          ) : verse ? (
+            <VerseDisplay verse={verse} language={language} />
+          ) : (
+            <p>Select an option to display a verse.</p>
+          )}
+          {!verse && !loading && (
+            <button onClick={handleRandomVerse}>Get Random Verse</button>
+          )}
+        </div>
+      )}
+
+      {activeTab === "settings" && (
+        <div className="tab-content">
+          <h1>Start from a Verse of Your Choice</h1>
+          <form className="setting-form" onSubmit={handleSettingsSubmit}>
+            <div>
+              <input
+                type="number"
+                id="chapter"
+                value={chapter}
+                placeholder="chepter, eg : 1"
+                onChange={(e) => setChapter(e.target.value)}
+                min="1"
+                max="18"
+                required
+              />
+            </div>
+            <div>
+             <input
+                type="number"
+                id="slok"
+                value={slok}
+                placeholder="slock, eg : 1"
+                onChange={(e) => setSlok(e.target.value)}
+                min="1"
+                max="20"
+                required
+              />
+            </div>
+            <button type="submit">Set Verse</button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
